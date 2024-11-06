@@ -1,0 +1,48 @@
+version: 0.2
+
+env:
+  parameter-store:
+    docker_user: "docker-user"
+    docker_pass: "docker-pass"
+    docker_url: "docker-url"
+
+phases:
+  install:
+    on-failure: ABORT
+    runtime-versions:
+      java: corretto17 
+    commands:
+      - echo Entered the install phase...
+      - apt-get update -y
+      - apt-get install -y maven
+    finally:
+      - echo "Maven and Java Installed" 
+
+  pre_build:
+    on-failure: ABORT
+    commands:
+      - echo Entered the build phase...
+      - echo Build started on `date`
+      - mvn clean install
+      - echo Build completed on `date`
+    finally:
+      - echo "Package Created"
+
+  build:
+    on-failure: ABORT
+    commands:
+      - echo "Creating Docker images and pushing to Dockerhub"
+      - echo $docker_pass | docker login -u $docker_user --password-stdin $docker_url
+      - docker build -t $docker_user/blog:latest .
+      - docker push $docker_user/blog:latest
+    finally:
+      - echo "Docker Image created and pushed to dockerhub"
+
+  post_build:
+    on-failure: ABORT
+    commands:
+      - echo "Build is successful"
+
+artifacts:
+  files:
+    - '**/*'
