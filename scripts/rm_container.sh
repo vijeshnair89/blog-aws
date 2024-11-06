@@ -1,6 +1,6 @@
 #!/bin/bash
 
-container=$(docker ps | grep blog | awk -F ' ' '{print $2}')
+container=$(docker ps | grep blog | awk -F ' ' '{print $1}')
 
 if [ $container != " " ]; then
 	docker stop "$container"
